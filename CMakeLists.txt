@@ -71,6 +71,12 @@ if (OPENMP_FOUND)
   endif()
 endif()
 
+# OSPRAY
+find_package(OSPRAY)
+include_directories(${OSPRAY_INCLUDE_DIRS})
+link_libraries(${OSPRAY_LIBRARIES})
+
+
 # TBB
 find_package(TBB REQUIRED)
 add_definitions(${TBB_DEFINITIONS})
@@ -94,6 +100,7 @@ endif()
 include_directories(BEFORE
   ${mpm_SOURCE_DIR}/include/
   ${mpm_SOURCE_DIR}/external/
+  ${mpm_SOURCE_DIR}/external/imgui/
   ${mpm_SOURCE_DIR}/tests/include/
 )
 
@@ -117,6 +124,25 @@ add_library(lmpm SHARED ${mpm_src} ${mpm_vtk})
 
 add_executable(mpm ${mpm_SOURCE_DIR}/src/main.cc)
 target_link_libraries(mpm lmpm)
+
+# OSPRAY
+set(OpenGL_GL_PREFERENCE "LEGACY")
+find_package(OpenGL 2 REQUIRED)
+
+find_package(glfw3 QUIET)
+if (TARGET glfw)
+  get_property(glfw3_INCLUDE_DIRS TARGET glfw
+    PROPERTY INTERFACE_INCLUDE_DIRECTORIES
+  )
+endif()
+add_executable(ospSphere
+  ${mpm_SOURCE_DIR}/src/osp_spheres.cc
+  ${mpm_SOURCE_DIR}/src/GLFWOSPRayWindow.cpp
+  ${mpm_SOURCE_DIR}/src/ArcballCamera.cpp
+  ${mpm_SOURCE_DIR}/src/imgui_impl_glfw_gl3.cpp
+  ${OSPRAY_INCLUDE_DIRS})
+
+target_link_libraries(ospSphere ${OSPRAY_LIBRARIES} ospray_imgui glfw ${OPENGL_LIBRARIES})
 
 # Unit test
 if(MPM_BUILD_TESTING)
