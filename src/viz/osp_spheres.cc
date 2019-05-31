@@ -230,24 +230,35 @@ OSPGeometry createRandomSpheresGeometry(size_t numSpheres) {
   ospSet1i(g_spheresGeometry, "offset_center", int(offsetof(Sphere, center)));
   ospSet1i(g_spheresGeometry, "offset_radius", int(offsetof(Sphere, radius)));
 
+  /*
   ospSetData(g_spheresGeometry, "color", spheresData);
   ospSet1i(g_spheresGeometry, "color_offset", int(offsetof(Sphere, color)));
   ospSet1i(g_spheresGeometry, "color_format", int(OSP_FLOAT4));
   ospSet1i(g_spheresGeometry, "color_stride", int(sizeof(Sphere)));
-
+  */
+  
   // create glass material and assign to geometry
-  OSPMaterial glassMaterial = ospNewMaterial2("pathtracer", "ThinGlass");
-  ospSet1f(glassMaterial, "attenuationDistance", 0.2f);
-  ospCommit(glassMaterial);
+  OSPMaterial soilMaterial = ospNewMaterial2("pathtracer", "OBJMaterial");
+  ospSet3f(soilMaterial, "Kd", 0.48f, 0.48f, 0.48f);
+  ospSet1f(soilMaterial, "Ns", 256.f);
+  ospSet1f(soilMaterial, "d", 1.f);
+  ospSet1f(soilMaterial, "illum", 2.f);
+  ospSet3f(soilMaterial, "Ka", 0.f, 0.f, 0.f);
+  ospSet3f(soilMaterial, "Ks", 0.04f, 0.04f, 0.04f);
+  ospSet3f(soilMaterial, "reflectance", 0.5f, 0.5f, 0.5f);
+  ospSet3f(soilMaterial, "eta", 0.3f, 0.3f, 0.3f);
+  ospSet3f(soilMaterial, "k", 0.1f, 0.1f, 0.1f);
+  ospSet1f(soilMaterial, "roughness", 0.1f);
+  ospCommit(soilMaterial);
 
-  ospSetMaterial(g_spheresGeometry, glassMaterial);
+  ospSetMaterial(g_spheresGeometry, soilMaterial);
 
   // commit the spheres geometry
   ospCommit(g_spheresGeometry);
 
   // release handles we no longer need
   ospRelease(spheresData);
-  ospRelease(glassMaterial);
+  ospRelease(soilMaterial);
 
   return g_spheresGeometry;
 }
@@ -331,8 +342,8 @@ void updateSpheresGeometry() {
 // updates the bouncing spheres' coordinates, geometry, and model
 void displayCallback(GLFWOSPRayWindow* glfwOSPRayWindow) {
   // update the spheres coordinates and geometry
-  updateSpheresCoordinates();
-  updateSpheresGeometry();
+  // updateSpheresCoordinates();
+  // updateSpheresGeometry();
 
   // commit the model since the spheres geometry changed
   ospCommit(g_model);
