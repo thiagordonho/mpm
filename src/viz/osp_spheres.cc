@@ -14,14 +14,14 @@
 // limitations under the License.                                           //
 // ======================================================================== //
 
-#include "GLFWOSPRayWindow.h"
 #include <iterator>
 #include <memory>
 #include <random>
 
 #include "imgui.h"
-
 #include "ospray/ospray.h"
+#include "viz/glfw_ospray_window.h"
+
 //#include "ospray/ospray_cpp.h"
 
 // using namespace ospcommon;

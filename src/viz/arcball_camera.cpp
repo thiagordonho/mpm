@@ -14,7 +14,7 @@
 // limitations under the License.                                           //
 // ======================================================================== //
 
-#include "ArcballCamera.h"
+#include "viz/arcball_camera.h"
 
 ArcballCamera::ArcballCamera(const ospcommon::box3f &worldBounds,
                              const ospcommon::vec2i &windowSize)

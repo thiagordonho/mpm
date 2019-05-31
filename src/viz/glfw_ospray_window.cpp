@@ -14,12 +14,13 @@
 // limitations under the License.                                           //
 // ======================================================================== //
 
-#include "GLFWOSPRayWindow.h"
 #include <iostream>
 #include <stdexcept>
 
 #include <imgui.h>
-#include "imgui/imgui_impl_glfw_gl3.h"
+#include "viz/imgui/imgui_impl_glfw_gl3.h"
+
+#include "viz/glfw_ospray_window.h"
 
 GLFWOSPRayWindow *GLFWOSPRayWindow::activeWindow = nullptr;
 

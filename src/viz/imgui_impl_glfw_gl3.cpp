@@ -7,7 +7,7 @@
 // https://github.com/ocornut/imgui
 
 #include <imgui.h>
-#include "imgui/imgui_impl_glfw_gl3.h"
+#include "viz/imgui/imgui_impl_glfw_gl3.h"
 
 // GL3W/GLFW
 #include <GLFW/glfw3.h>

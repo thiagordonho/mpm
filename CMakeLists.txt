@@ -136,10 +136,10 @@ if (TARGET glfw)
   )
 endif()
 add_executable(ospSphere
-  ${mpm_SOURCE_DIR}/src/osp_spheres.cc
-  ${mpm_SOURCE_DIR}/src/GLFWOSPRayWindow.cpp
-  ${mpm_SOURCE_DIR}/src/ArcballCamera.cpp
-  ${mpm_SOURCE_DIR}/src/imgui_impl_glfw_gl3.cpp
+  ${mpm_SOURCE_DIR}/src/viz/osp_spheres.cc
+  ${mpm_SOURCE_DIR}/src/viz/glfw_ospray_window.cpp
+  ${mpm_SOURCE_DIR}/src/viz/arcball_camera.cpp
+  ${mpm_SOURCE_DIR}/src/viz/imgui_impl_glfw_gl3.cpp
   ${OSPRAY_INCLUDE_DIRS})
 
 target_link_libraries(ospSphere ${OSPRAY_LIBRARIES} ospray_imgui glfw ${OPENGL_LIBRARIES})

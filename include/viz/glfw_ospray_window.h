@@ -18,10 +18,12 @@
 
 #include <GLFW/glfw3.h>
 #include <functional>
-#include "ArcballCamera.h"
+
 #include "ospcommon/box.h"
 #include "ospcommon/vec.h"
 #include "ospray/ospray.h"
+
+#include "viz/arcball_camera.h"
 
 class GLFWOSPRayWindow
 {
