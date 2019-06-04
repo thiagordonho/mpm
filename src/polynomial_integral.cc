@@ -111,11 +111,35 @@ const Eigen::Matrix<double, 16, 1>
             .finished();
 
 //! 3D Tetrahedron
+//! Polynomial order 1 and number of terms 8
+//! 4 monomials: 1, z, y, yz, x, xz, xy, xyz
+//! Integration of monomials over [0,0,0] x [0, 1-x, 1-x-y] unit tetrahedron
+template <>
+const Eigen::Matrix<double, 8, 1>
+    mpm::Polynomial::IntegralBase<3, 1, 8>::Tri_Definite_Integrals =
+        (Eigen::MatrixXd(8, 1) << 1. / 6., 1. / 24., 1. / 24., 1. / 120.,
+         1. / 24., 1. / 120., 1. / 120., 1. / 720.)
+            .finished();
+
+//! 3D Tetrahedron
 //! Polynomial order 2 and number of terms 27
 //! 27 monomials: 1, z, z^2, y, yz, yz^2, y^2, y^2 z, y^2 z^2, x, xz, x z^2, x
 //! y, xyz, xyz^2, xy^2, xy^2 z, xy^2 z^2, x^2, x^2 z, x^2 z^2, x^2 y, x^2 yz,
-//! x^2 yz^2, x^2 y^2, y^2 z, x^2 y^2 z^2
-// Integration of monomials over [0,0,0] x [0, 1-x, 1-x-y] unit tetrahedron
+//! x^2 yz^2, x^2 y^2, x^2 y^2 z, x^2 y^2 z^2
+//! Integration of monomials over [0,0,0] x [0, 1-x, 1-x-y] unit tetrahedron
 template <>
 const Eigen::Matrix<double, 27, 1>
-mpm::Polynomial::IntegralBase<3, 2, 27>::Tri_Definite_Integrals = Eigen::Matrix<double, 27, 1>::Zero();
+    mpm::Polynomial::IntegralBase<3, 2, 27>::Tri_Definite_Integrals =
+        (Eigen::MatrixXd(27, 1) << 1. / 6., 1. / 24., 1. / 60., 1. / 24.,
+         1. / 120., 1. / 360., 1. / 60., 1. / 360., 1. / 1260., 1. / 24.,
+         1. / 120., 1. / 360., 1. / 120., 1. / 720., 1. / 2520., 1. / 360.,
+         1. / 2520., 1. / 10080., 1. / 60., 1. / 360., 1. / 1260., 1. / 360.,
+         1. / 2520., 1. / 10080., 1. / 1260., 1. / 10080., 1. / 45360.)
+            .finished();
+
+//! 3D Triangle
+//! Polynomial order 3 and number of terms 64
+template <>
+const Eigen::Matrix<double, 64, 1>
+    mpm::Polynomial::IntegralBase<3, 3, 64>::Tri_Definite_Integrals =
+        Eigen::Matrix<double, 64, 1>::Zero();
