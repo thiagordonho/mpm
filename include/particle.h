@@ -103,7 +103,9 @@ class Particle : public ParticleBase<Tdim> {
 
   //! Return volume
   //! \param[in] phase Index corresponding to the phase
-  double volume(unsigned phase) const override { return volume_; }
+  double volume(unsigned phase) const override {
+    return volume_ * volume_fraction_(phase);
+  }
 
   //! Return size of particle in natural coordinates
   VectorDim natural_size() const override { return natural_size_; }
@@ -116,6 +118,11 @@ class Particle : public ParticleBase<Tdim> {
   //! \param[in] phase Index corresponding to the phase
   //! \param[in] dt Analysis time step
   bool update_volume(unsigned phase, double dt) override;
+
+  //! Update material point volume by using the cell-centre strain rate
+  //! \param[in] phase Index corresponding to the phase
+  //! \param[in] dt Analysis time step
+  bool update_volume_centre_strainrate(unsigned phase, double dt) override;
 
   //! Compute mass as volume * density
   //! \param[in] phase Index corresponding to the phase

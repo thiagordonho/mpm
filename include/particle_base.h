@@ -108,6 +108,9 @@ class ParticleBase {
   //! Update material point volume
   virtual bool update_volume(unsigned phase, double dt) = 0;
 
+  //! Update material point volume by using the cell-centre strain rate
+  virtual bool update_volume_centre_strainrate(unsigned phase, double dt) = 0;
+
   //! Compute mass of particle
   virtual bool compute_mass(unsigned phase) = 0;
 
