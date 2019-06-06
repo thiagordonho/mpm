@@ -241,85 +241,127 @@ bool mpm::MPMBase<Tdim>::initialise_particles() {
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
 #endif
 
-    // Get particle properties
-    auto particle_props = io_->json_object("particle");
-    // Get mesh properties
-    auto mesh_props = io_->json_object("mesh");
-    // Get Mesh reader from JSON object
-    const std::string reader =
-        mesh_props["mesh_reader"].template get<std::string>();
-
+        // Check for duplicates
     bool check_duplicates = true;
     try {
-      check_duplicates = mesh_props["check_duplicates"].template get<bool>();
+      check_duplicates = analysis_["check_duplicates"].template get<bool>();
     } catch (std::exception& exception) {
       console_->warn(
           "{} #{}: Check duplicates, not specified setting default as true",
           __FILE__, __LINE__, exception.what());
       check_duplicates = true;
     }
-
-    // Create a mesh reader
+    // Get particle reader from JSON object
+    const std::string reader =
+        analysis_["file_reader"].template get<std::string>();
+    // Create a particle reader
     auto particle_reader =
         Factory<mpm::ReadMesh<Tdim>>::instance()->create(reader);
 
+    // Get particle properties
+    auto particle_props = io_->json_object("particles");
+    if (particle_props.empty())
+      throw std::runtime_error("No particle generators are specified");
+
     auto particles_begin = std::chrono::steady_clock::now();
 
-    // Get all particles
-    std::vector<Eigen::Matrix<double, Tdim, 1>> all_particles;
-
-    // Generate particles
-    bool read_particles_file = false;
+    // Total number of particles
+    mpm::Index num_particles = 0; 
     try {
-      unsigned nparticles_cell =
-          mesh_props["generate_particles_cells"].template get<unsigned>();
+      for (const auto& pgroup : particle_props) {
+        // particles coordinates
+        std::vector<Eigen::Matrix<double, Tdim, 1>> particles_group;
+        // Particle generator
+        const auto generator = pgroup["generator"].template get<std::string>();
 
-      if (nparticles_cell > 0)
-        all_particles = mesh_->generate_material_points(nparticles_cell);
-      else
-        throw std::runtime_error(
-            "Specified # of particles per cell for generation is invalid!");
+        // Generate particles from file
+        if(generator == "file") {
+          // Read particles from file : this needs modification in IO class
+          particles_group =
+              particle_reader->read_particles(io_->file_name("particles"));
+        }
+        // Generate material points in all cells
+        else if (generator == "regular_generator") {  // is the name good?
+          // 1D Gauss points per cell
+          unsigned nparticles_cell =
+              pgroup["generator_properties"]["particles_per_cell"]
+                  .template get<unsigned>();
+
+          if (nparticles_cell > 0)
+            particles_group = mesh_->generate_material_points(nparticles_cell);
+          else
+            throw std::runtime_error(
+                "Specified # of particles per cell for generation is invalid!");
+
+        }
+        else if (generator == "ls_generator") {
+          // Chack if level sets are created
+          if (mesh_->nlevelsets() == 0)
+            throw std::runtime_error(
+                "No level sets are created for generating particles");
+          unsigned domain_id = pgroup["generator_properties"]["domain_id"]
+                                   .template get<unsigned>();
+          // Number of points per each initial sub-integration cell
+          unsigned npoints =
+              pgroup["generator_properties"]["points_per_cell"]
+                  .template get<unsigned>();
+          // Zero level set ids which define the integration domain
+          std::vector<unsigned> ls_ids =
+              pgroup["generator_properties"]["level_sets"];
+          
+          // if (npoints > 0 && ls_ids.size() > 0)
+          //   particles_group.emplace_back(
+          //       mesh_->generate_ls_material_points(npoints, ls_ids));
+          // else
+          //   throw std::runtime_error(
+          //       "Specified number of points per cell or level set ids are "
+          //       "invalid");
+        }
+        else
+          throw std::runtime_error(
+              "Particle generator type is not properly specified");
+
+        // Particle type
+        const auto particle_type =
+            pgroup["particle_type"].template get<std::string>();
+
+        // Get all particle ids
+        std::vector<mpm::Index> particles_group_ids(particles_group.size());
+        std::iota(particles_group_ids.begin(), particles_group_ids.end(),
+                  num_particles);
+
+        // Get local particles chunk
+        std::vector<Eigen::Matrix<double, Tdim, 1>> particles;
+        chunk_vector_quantities(particles_group, particles);
+
+        // Get local particles ids chunks
+        std::vector<mpm::Index> particles_ids;
+        chunk_scalar_quantities(particles_group_ids, particles_ids);
+
+        // Create particles
+        bool particle_status =
+            mesh_->create_particles(particles_ids,      // global id
+                                    particle_type,      // particle type
+                                    particles,          // coordinates
+                                    check_duplicates);  // Check duplicates
+
+        if (!particle_status)
+          throw std::runtime_error("Addition of particles to mesh failed");
+        // Set the total number of particles
+        num_particles += particles.size();
+      }
 
     } catch (std::exception& exception) {
-      console_->warn("Generate particles is not set, reading particles file");
-      read_particles_file = true;
+      console_->warn("Generating particle failed");
+      status = false;
     }
-
-    // Read particles from file
-    if (read_particles_file)
-      all_particles =
-          particle_reader->read_particles(io_->file_name("particles"));
-    // Get all particle ids
-    std::vector<mpm::Index> all_particles_ids(all_particles.size());
-    std::iota(all_particles_ids.begin(), all_particles_ids.end(), 0);
-
-    // Get local particles chunk
-    std::vector<Eigen::Matrix<double, Tdim, 1>> particles;
-    chunk_vector_quantities(all_particles, particles);
-
-    // Get local particles ids chunks
-    std::vector<mpm::Index> particles_ids;
-    chunk_scalar_quantities(all_particles_ids, particles_ids);
-
-    // Particle type
-    const auto particle_type =
-        particle_props["particle_type"].template get<std::string>();
-
-    // Create particles from file
-    bool particle_status =
-        mesh_->create_particles(particles_ids,      // global id
-                                particle_type,      // particle type
-                                particles,          // coordinates
-                                check_duplicates);  // Check duplicates
-
-    if (!particle_status)
-      throw std::runtime_error("Addition of particles to mesh failed");
 
     auto particles_end = std::chrono::steady_clock::now();
     console_->info("Rank {} Read particles: {} ms", mpi_rank,
                    std::chrono::duration_cast<std::chrono::milliseconds>(
                        particles_end - particles_begin)
                        .count());
+
     try {
       // Read and assign particles cells
       if (!io_->file_name("particles_cells").empty()) {
