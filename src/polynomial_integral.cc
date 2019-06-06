@@ -27,7 +27,7 @@ mpm::Polynomial::IntegralBase<2, 2, 9>::Square_Definite_Integrals =
 //! Integration of monomials over [-1,-1] x [1,1] unit square
 template <>
 const Eigen::Matrix<double, 16, 1>
-mpm::Polynomial::IntegralBase<2, 3, 16>::Square_Definite_Integrals =
+    mpm::Polynomial::IntegralBase<2, 3, 16>::Square_Definite_Integrals =
         (Eigen::MatrixXd(16, 1) << 4.0, 0., 4. / 3, 0., 0., 0., 0., 0., 4. / 3,
          0., 4. / 9, 0., 0., 0., 0., 0.)
             .finished();
@@ -39,7 +39,7 @@ mpm::Polynomial::IntegralBase<2, 3, 16>::Square_Definite_Integrals =
 template <>
 const Eigen::Matrix<double, 8, 1>
     mpm::Polynomial::IntegralBase<3, 1, 8>::Square_Definite_Integrals =
-        (Eigen::MatrixXd(4, 1) << 8.0, 0., 0., 0., 0., 0., 0., 0.).finished();
+        (Eigen::MatrixXd(8, 1) << 8.0, 0., 0., 0., 0., 0., 0., 0.).finished();
 
 //! 3D Hexahedron
 //! Polynomial order 2 and number of terms 27
@@ -71,7 +71,7 @@ const Eigen::Matrix<double, 27, 1>
 template <>
 const Eigen::Matrix<double, 64, 1>
     mpm::Polynomial::IntegralBase<3, 3, 64>::Square_Definite_Integrals =
-        (Eigen::MatrixXd(27, 1) << 8., 0., 8. / 3., 0., 0., 0., 0., 0., 8. / 3.,
+        (Eigen::MatrixXd(64, 1) << 8., 0., 8. / 3., 0., 0., 0., 0., 0., 8. / 3.,
          0., 8. / 9., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
          0., 0., 0., 0., 0., 0., 0., 8. / 3., 0., 8. / 9., 0., 0., 0., 0., 0.,
          8. / 9., 0., 8. / 27., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.,
@@ -83,8 +83,9 @@ const Eigen::Matrix<double, 64, 1>
 //! 4 monomials: 1, y, x, xy
 //! Integration of monomials over [0,0] x [1,1-x] unit triangle
 template <>
-const Eigen::Matrix<double, 4, 1>
-mpm::Polynomial::IntegralBase<2, 1, 4>::Tri_Definite_Integrals = (Eigen::MatrixXd(4,1) << 1. / 2., 1. / 6., 1. / 6., 1. / 24.).finished();
+const Eigen::Matrix<double, 4, 1> mpm::Polynomial::IntegralBase<
+    2, 1, 4>::Tri_Definite_Integrals =
+    (Eigen::MatrixXd(4, 1) << 1. / 2., 1. / 6., 1. / 6., 1. / 24.).finished();
 
 //! 2D Triangle
 //! Polynomial order 2 and number of terms 9
