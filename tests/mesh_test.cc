@@ -14,6 +14,7 @@
 #include "mesh.h"
 #include "node.h"
 #include "quadrilateral_element.h"
+#include "material/material.h"
 
 //! \brief Check mesh class for 2D case
 TEST_CASE("Mesh is checked for 2D case", "[mesh][2D]") {
@@ -576,11 +577,27 @@ TEST_CASE("Mesh is checked for 2D case", "[mesh][2D]") {
             // Global particle index
             std::vector<mpm::Index> gpid(coordinates.size());
             std::iota(gpid.begin(), gpid.end(), 0);
-            mesh->create_particles(gpid, particle_type, coordinates, false);
+
+            // Initialise material
+            Json jmaterial;
+            jmaterial["density"] = 1000.;
+            jmaterial["youngs_modulus"] = 1.0E+7;
+            jmaterial["poisson_ratio"] = 0.3;
+
+            unsigned mat_id = 0;
+            auto material =
+                Factory<mpm::Material<Dim>, unsigned, const Json&>::instance()
+                    ->create("LinearElastic2D", std::move(mat_id), jmaterial);
+
+            std::vector<std::shared_ptr<mpm::Material<Dim>>> materials;
+            materials.emplace_back(material);
+
+            mesh->create_particles(gpid, particle_type, materials, coordinates,
+                                   false);
             // Check if mesh has added particles
             REQUIRE(mesh->nparticles() == coordinates.size());
             // Try again this shouldn't add more coordinates
-            mesh->create_particles(gpid, particle_type, coordinates);
+            mesh->create_particles(gpid, particle_type, materials, coordinates);
             // Check if mesh has added particles
             REQUIRE(mesh->nparticles() == coordinates.size());
 
@@ -639,7 +656,7 @@ TEST_CASE("Mesh is checked for 2D case", "[mesh][2D]") {
             unsigned nparticles = coordinates.size();
             coordinates.clear();
             // This fails with empty list error in particle creation
-            mesh->create_particles(gpid, particle_type, coordinates);
+            mesh->create_particles(gpid, particle_type, materials, coordinates);
             REQUIRE(mesh->nparticles() == nparticles);
 
             const unsigned phase = 0;
@@ -1560,11 +1577,24 @@ TEST_CASE("Mesh is checked for 3D case", "[mesh][3D]") {
             // Global particle index
             std::vector<mpm::Index> gpid(coordinates.size());
             std::iota(gpid.begin(), gpid.end(), 0);
-            mesh->create_particles(gpid, particle_type, coordinates);
+                        // Initialise material
+            Json jmaterial;
+            jmaterial["density"] = 1000.;
+            jmaterial["youngs_modulus"] = 1.0E+7;
+            jmaterial["poisson_ratio"] = 0.3;
+
+            unsigned mat_id = 0;
+            auto material =
+                Factory<mpm::Material<Dim>, unsigned, const Json&>::instance()
+                    ->create("LinearElastic3D", std::move(mat_id), jmaterial);
+            std::vector<std::shared_ptr<mpm::Material<Dim>>> materials;
+            materials.emplace_back(material);
+
+            mesh->create_particles(gpid, particle_type, materials, coordinates);
             // Check if mesh has added particles
             REQUIRE(mesh->nparticles() == coordinates.size());
             // Try again this shouldn't add more coordinates
-            mesh->create_particles(gpid, particle_type, coordinates);
+            mesh->create_particles(gpid, particle_type, materials, coordinates);
             // Check if mesh has added particles
             REQUIRE(mesh->nparticles() == coordinates.size());
             // Clear coordinates and try creating a list of particles with an
@@ -1572,7 +1602,7 @@ TEST_CASE("Mesh is checked for 3D case", "[mesh][3D]") {
             unsigned nparticles = coordinates.size();
             coordinates.clear();
             // This fails with empty list error in particle creation
-            mesh->create_particles(gpid, particle_type, coordinates);
+            mesh->create_particles(gpid, particle_type, materials, coordinates);
             REQUIRE(mesh->nparticles() == nparticles);
 
             // Test assign particles cells again should fail
