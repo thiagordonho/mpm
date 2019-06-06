@@ -17,9 +17,33 @@ mpm::LevelSet<Tdim>::LevelSet(unsigned id, const std::string& domain,
       integration_domain_ = mpm::IntegrationDomain::Boundary;
     else
       throw std::runtime_error(
-          "Integration domain for level set is not properlyspecified, using "
+          "Integration domain for level set is not properly specified, using "
           "default domain-in");
   } catch (std::exception& exception) {
     console_->warn("{} #{}: {}", __FILE__, __LINE__, exception.what());
   }
+}
+
+//! Evaluate signed distance function of a given point
+template <unsigned Tdim>
+double mpm::LevelSet<Tdim>::sign_distance(
+    const VectorDim& point) const {
+  // number of monomials
+  const unsigned nterms = pow((poly_order_ + 1), Tdim);
+  Eigen::VectorXd monomials =
+      mpm::Polynomial::evaluate_monomials<Tdim>(poly_order_, point);
+
+  double signed_distance = 0.0;
+  for (unsigned i = 0; i < nterms; ++i)
+    signed_distance += poly_coefficients_.at(i) * monomials(i);
+  return signed_distance;
+}
+
+// TO DO
+//! Evaluate normal vector to the zero level set at a given point
+template <unsigned Tdim>
+Eigen::Matrix<double, Tdim, 1> mpm::LevelSet<Tdim>::normal_vector(
+    const VectorDim& point) const {
+  VectorDim random;
+  return random;
 }

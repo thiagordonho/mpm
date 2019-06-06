@@ -56,6 +56,30 @@ public:
  // Return moving status
  bool moving() { return moving_; }
 
+ //! Evaluate signed distance from the zero level set  to a point
+ //! \param[in] point point coordinates
+ //! \param[out] signed (+/-) distance
+ double sign_distance(const VectorDim& point) const;
+
+ //! Evaluate the normal vector to the zero level set at a given point
+ //! \param[in] point coordinates
+ //! \param[out] normal vector
+ VectorDim normal_vector(const VectorDim& point) const;
+
+ // TODO: not sure if Integration::Boundary is needed.
+ // TODO: returning '0' here should not be done.
+ //! Return integration domain
+ //! \retval +1 for INTEGRATION_OUT
+ //! \retval -1 for INTEGRATION_IN
+ int integration_domain() const {
+   if (integration_domain_ == mpm::IntegrationDomain::Integration_In)
+     return -1;
+   else if (integration_domain_ == mpm::IntegrationDomain::Integration_Out)
+     return 1;
+   else
+     return 0;
+ }
+
 
 private:
  // level set id
