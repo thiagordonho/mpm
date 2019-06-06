@@ -534,7 +534,7 @@ bool mpm::Particle<Tdim, Tnphases>::assign_traction(unsigned phase,
   bool status = false;
   try {
     if (phase < 0 || phase >= Tnphases || direction < 0 || direction >= Tdim ||
-        this->phase_volume_(phase) == std::numeric_limits<double>::max()) {
+        this->volume_ == std::numeric_limits<double>::max()) {
       throw std::runtime_error(
           "Particle traction property: volume / direction / phase is invalid");
     }
