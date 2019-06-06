@@ -277,8 +277,10 @@ bool mpm::MPMBase<Tdim>::initialise_particles() {
         // Generate particles from file
         if (generator == "file") {
           // Read particles from file : this needs modification in IO class
+          const auto pfile = pgroup["generator_properties"]["location"]
+                                 .template get<std::string>();
           particles_group =
-              particle_reader->read_particles(io_->file_name("particles"));
+              particle_reader->read_particles(io_->file_name(pfile));
         }
         // Generate material points in all cells
         else if (generator == "regular_generator") {  // is the name good?
