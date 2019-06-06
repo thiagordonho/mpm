@@ -30,6 +30,7 @@
 #include "node.h"
 #include "particle.h"
 #include "particle_base.h"
+#include "levelset.h"
 
 namespace mpm {
 
@@ -317,6 +318,10 @@ class Mesh {
       const tsl::robin_map<mpm::Index, std::vector<mpm::Index>>& particle_sets,
       bool check_duplicates);
 
+  //! Return the number of level sets defined
+  //! \retval number of level sets
+  unsigned nlevelsets() const { return level_sets_.size(); }
+
  private:
   // Locate a particle in mesh cells
   bool locate_particle_cells(
@@ -349,6 +354,8 @@ class Mesh {
   Container<Cell<Tdim>> cells_;
   //! Logger
   std::unique_ptr<spdlog::logger> console_;
+  // Level sets
+  std::unordered_map<unsigned, std::shared_ptr<LevelSet<Tdim>>> level_sets_;
 };  // Mesh class
 }  // namespace mpm
 
