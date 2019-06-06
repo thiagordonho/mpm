@@ -266,7 +266,7 @@ bool mpm::MPMBase<Tdim>::initialise_particles() {
     auto particles_begin = std::chrono::steady_clock::now();
 
     // Total number of particles
-    mpm::Index num_particles = 0; 
+    mpm::Index num_particles = 0;
     try {
       for (const auto& pgroup : particle_props) {
         // particles coordinates
@@ -275,7 +275,7 @@ bool mpm::MPMBase<Tdim>::initialise_particles() {
         const auto generator = pgroup["generator"].template get<std::string>();
 
         // Generate particles from file
-        if(generator == "file") {
+        if (generator == "file") {
           // Read particles from file : this needs modification in IO class
           particles_group =
               particle_reader->read_particles(io_->file_name("particles"));
@@ -292,8 +292,8 @@ bool mpm::MPMBase<Tdim>::initialise_particles() {
           else
             throw std::runtime_error(
                 "Specified # of particles per cell for generation is invalid!");
-
         }
+        // Generate material points from zero level sets
         else if (generator == "ls_generator") {
           // Chack if level sets are created
           if (mesh_->nlevelsets() == 0)
@@ -321,9 +321,20 @@ bool mpm::MPMBase<Tdim>::initialise_particles() {
           throw std::runtime_error(
               "Particle generator type is not properly specified");
 
+            // Particles group id
+        const unsigned group_id = pgroup["group_id"].template get<unsigned>();
+
         // Particle type
         const auto particle_type =
             pgroup["particle_type"].template get<std::string>();
+
+        // Material id
+        std::vector<unsigned> material_id = pgroup["material_id"];
+        std::vector<std::shared_ptr<mpm::Material<Tdim>>> materials;
+        std::for_each(material_id.begin(), material_id.end(),
+                      [&](const unsigned& mat_id) {
+                        materials.emplace_back(materials_.at(mat_id));
+                      });
 
         // Get all particle ids
         std::vector<mpm::Index> particles_group_ids(particles_group.size());
@@ -342,11 +353,21 @@ bool mpm::MPMBase<Tdim>::initialise_particles() {
         bool particle_status =
             mesh_->create_particles(particles_ids,      // global id
                                     particle_type,      // particle type
+                                    materials,          // material(s)
                                     particles,          // coordinates
                                     check_duplicates);  // Check duplicates
 
         if (!particle_status)
           throw std::runtime_error("Addition of particles to mesh failed");
+
+        // Add to particle groups
+        bool particle_group_status =
+            mesh_->add_particles_group(group_id, particles_ids);
+
+        if(!particle_group_status)
+          throw std::runtime_error(
+              "Addition of particles group to mesh failed");
+
         // Set the total number of particles
         num_particles += particles.size();
       }
