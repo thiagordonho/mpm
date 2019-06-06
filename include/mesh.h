@@ -160,13 +160,14 @@ class Mesh {
   //! Create particles from coordinates
   //! \param[in] gpids Global particle ids
   //! \param[in] particle_type Particle type
+  //! \param[in] material Material
   //! \param[in] coordinates Nodal coordinates
   //! \param[in] check_duplicates Parameter to check duplicates
   //! \retval status Create particle status
-  bool create_particles(const std::vector<mpm::Index>& gpids,
-                        const std::string& particle_type,
-                        const std::vector<VectorDim>& coordinates,
-                        bool check_duplicates = true);
+  bool create_particles(
+      const std::vector<mpm::Index>& gpids, const std::string& particle_type,
+      const std::vector<std::shared_ptr<mpm::Material<Tdim>>>& material,
+      const std::vector<VectorDim>& coordinates, bool check_duplicates = true);
 
   //! Add a particle to the mesh
   //! \param[in] particle A shared pointer to particle
@@ -318,6 +319,13 @@ class Mesh {
       const tsl::robin_map<mpm::Index, std::vector<mpm::Index>>& particle_sets,
       bool check_duplicates);
 
+  //! Add particle groups
+  //! \param[in] group Group id
+  //! \param[in] particle_ids Particle ids in the given group
+  //! \retval status Status of  create particle groups
+  bool add_particles_group(const unsigned group,
+                            std::vector<mpm::Index>& particle_ids);
+
   //! Return the number of level sets defined
   //! \retval number of level sets
   unsigned nlevelsets() const { return level_sets_.size(); }
@@ -338,6 +346,8 @@ class Mesh {
   Container<ParticleBase<Tdim>> particles_;
   //! Container of particle sets
   tsl::robin_map<unsigned, Container<ParticleBase<Tdim>>> particle_sets_;
+  //! Container of particle groups
+  tsl::robin_map<unsigned, Container<ParticleBase<Tdim>>> particle_groups_;
   //! Map of particles for fast retrieval
   Map<ParticleBase<Tdim>> map_particles_;
   //! Container of nodes

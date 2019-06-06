@@ -262,6 +262,7 @@ std::vector<Eigen::Matrix<double, Tdim, 1>>
 template <unsigned Tdim>
 bool mpm::Mesh<Tdim>::create_particles(
     const std::vector<mpm::Index>& gp_ids, const std::string& particle_type,
+    const std::vector<std::shared_ptr<mpm::Material<Tdim>>>& material,
     const std::vector<VectorDim>& coordinates, bool check_duplicates) {
   bool status = true;
   try {
@@ -278,9 +279,19 @@ bool mpm::Mesh<Tdim>::create_particles(
               ->create(particle_type, static_cast<mpm::Index>(gp_ids.at(gpid)),
                        particle_coordinates),
           check_duplicates);
+      // Assign material to particle
+      bool material_status = true;
+      unsigned phase = 0;
+      std::for_each(material.begin(), material.end(),
+                    [&](const std::shared_ptr<mpm::Material<Tdim>>& mat) {
+                      material_status =
+                          map_particles_[gp_ids.at(gpid)]->assign_material(
+                              phase, mat);
+                      ++phase;
+                    });
 
       // Increment particle id
-      if (insert_status) ++gpid;
+      if (insert_status && material_status) ++gpid;
       // When addition of particle fails
       else
         throw std::runtime_error("Addition of particle to mesh failed!");
@@ -314,6 +325,32 @@ bool mpm::Mesh<Tdim>::add_particle(
   } catch (std::exception& exception) {
     console_->error("{} #{}: {}\n", __FILE__, __LINE__, exception.what());
     status = false;
+  }
+  return status;
+}
+
+//! Add particle groups
+template <unsigned Tdim>
+bool mpm::Mesh<Tdim>::add_particles_group(
+    const unsigned group, std::vector<mpm::Index>& particle_ids) {
+  bool status = true;
+  bool check_duplicates = true;
+  try {
+    // Create a container for the particles group
+    Container<ParticleBase<Tdim>> particles;
+    // Reserve the size of the container
+    particles.reserve(particle_ids.size());
+    // Add particles to the container
+    for (auto pid : particle_ids) {
+      bool insertion_status =
+          particles.add(map_particles_[pid], check_duplicates);
+    }
+    // Add to particle groups
+    status = this->particle_groups_.insert({group, particles}).second;
+    if (!status)
+      throw std::runtime_error("Adding particles group to mesh failed");
+  } catch (std::exception& exception) {
+    console_->error("{} #{}: {}\n", __FILE__, __LINE__, exception.what());
   }
   return status;
 }
