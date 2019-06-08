@@ -89,6 +89,9 @@ TEST_CASE("IO is checked for input parsing", "[IO][JSON]") {
     // Check analysis type
     REQUIRE(io->analysis_type() == "MPMExplicitUSF3D");
 
+    // Check working dir
+    REQUIRE(io->working_dir() == "./");
+
     // Check cmake JSON object
     REQUIRE(io->file_name("config") == "./mpm.json");
 

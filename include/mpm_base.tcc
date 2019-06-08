@@ -14,7 +14,7 @@ mpm::MPMBase<Tdim>::MPMBase(std::unique_ptr<IO>&& io)
   // Set mesh as isoparametric
   bool isoparametric = is_isoparametric();
 
-  mesh_ = std::make_unique<mpm::Mesh<Tdim>>(id, isoparametric);
+  mesh_ = std::make_shared<mpm::Mesh<Tdim>>(id, isoparametric);
 
   // Empty all materials
   materials_.clear();

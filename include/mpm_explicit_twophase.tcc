@@ -78,6 +78,8 @@ bool mpm::MPMExplicitTwoPhase<Tdim>::solve() {
   }
 
   // Compute mass
+  // TODO remove phase
+  unsigned phase = 0;
   mesh_->iterate_over_particles(std::bind(
       &mpm::ParticleBase<Tdim>::compute_mass, std::placeholders::_1, phase));
 
