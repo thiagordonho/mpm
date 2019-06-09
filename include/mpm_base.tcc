@@ -333,6 +333,8 @@ bool mpm::MPMBase<Tdim>::initialise_particles() {
           throw std::runtime_error(
               "Particle generator type is not properly specified");
 
+        console_->error("{} {} Testing", __FILE__, __LINE__);
+
         // Particles group id
         const unsigned group_id = pgroup["group_id"].template get<unsigned>();
 
@@ -385,7 +387,7 @@ bool mpm::MPMBase<Tdim>::initialise_particles() {
       }
 
     } catch (std::exception& exception) {
-      console_->warn("Generating particle failed");
+      console_->error("Generating particle failed: {}", exception.what());
       status = false;
     }
 
