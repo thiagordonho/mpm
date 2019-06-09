@@ -251,18 +251,23 @@ bool mpm::MPMBase<Tdim>::initialise_particles() {
           __FILE__, __LINE__, exception.what());
       check_duplicates = true;
     }
+    console_->error("{} {} Testing", __FILE__, __LINE__);
     // Get particle reader from JSON object
     const std::string reader =
         analysis_["file_reader"].template get<std::string>();
+    console_->error("{} {} Testing", __FILE__, __LINE__);
     // Create a particle reader
     auto particle_reader =
         Factory<mpm::ReadMesh<Tdim>>::instance()->create(reader);
+    console_->error("{} {} Testing", __FILE__, __LINE__);
 
     // Get particle properties
     auto particle_props = io_->json_object("particles");
+    console_->error("{} {} Testing", __FILE__, __LINE__);
     if (particle_props.empty())
       throw std::runtime_error("No particle generators are specified");
 
+    console_->error("{} {} Testing", __FILE__, __LINE__);
     auto particles_begin = std::chrono::steady_clock::now();
 
     // Total number of particles
@@ -273,14 +278,21 @@ bool mpm::MPMBase<Tdim>::initialise_particles() {
         std::vector<Eigen::Matrix<double, Tdim, 1>> particles_group;
         // Particle generator
         const auto generator = pgroup["generator"].template get<std::string>();
+        console_->error("{} {} Testing", __FILE__, __LINE__);
 
         // Generate particles from file
         if (generator == "file") {
+          console_->error("{} {} {} Testing", __FILE__, __LINE__,
+                          io_->working_dir());
           // Read particles from file : this needs modification in IO class
-          const auto pfile = pgroup["generator_properties"]["location"]
-                                 .template get<std::string>();
-          particles_group =
-              particle_reader->read_particles(io_->file_name(pfile));
+          std::string pfile = pgroup["generator_properties"]["location"]
+                                  .template get<std::string>();
+          pfile = io_->working_dir() + pfile;
+          console_->error("{} {} Testing {} ", __FILE__, __LINE__, pfile);
+
+          particle_reader->read_particles(pfile);
+          console_->error("{} {} Testing", __FILE__, __LINE__);
+
         }
         // Generate material points in all cells
         else if (generator == "regular_generator") {  // is the name good?
