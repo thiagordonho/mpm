@@ -271,6 +271,8 @@ bool mpm::MPMBase<Tdim>::initialise_particles() {
       for (const auto& pgroup : particle_props) {
         // particles coordinates
         std::vector<Eigen::Matrix<double, Tdim, 1>> particles_group;
+        // Particles group id
+        const unsigned group_id = pgroup["group_id"].template get<unsigned>();
         // Particle generator
         const auto generator = pgroup["generator"].template get<std::string>();
 
@@ -322,9 +324,6 @@ bool mpm::MPMBase<Tdim>::initialise_particles() {
         else
           throw std::runtime_error(
               "Particle generator type is not properly specified");
-
-            // Particles group id
-        const unsigned group_id = pgroup["group_id"].template get<unsigned>();
 
         // Particle type
         const auto particle_type =

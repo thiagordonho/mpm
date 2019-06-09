@@ -54,13 +54,13 @@ bool mpm::MPMExplicit<Tdim>::solve() {
   if (!particle_status) status = false;
 
   // Get particle properties
-  auto particle_props = io_->json_object("particle");
+  // auto particle_props = io_->json_object("particle");
 
-  // Assign material to particle sets
-  if (particle_props["particle_sets"].size() != 0) {
-    // Assign material to particles in the specific sets
-    bool set_material_status = this->apply_properties_to_particles_sets();
-  }
+  // // Assign material to particle sets
+  // if (particle_props["particle_sets"].size() != 0) {
+  //   // Assign material to particles in the specific sets
+  //   bool set_material_status = this->apply_properties_to_particles_sets();
+  // }
 
   // Compute mass
   mesh_->iterate_over_particles(std::bind(
