@@ -292,7 +292,7 @@ class Particle : public ParticleBase<Tdim> {
   using ParticleBase<Tdim>::material_;
   //! State variables
   using ParticleBase<Tdim>::state_variables_;
-  //! Material point volume 
+  //! Material point volume
   using ParticleBase<Tdim>::volume_;
   //! Material point porosity
   using ParticleBase<Tdim>::porosity_;
@@ -305,7 +305,7 @@ class Particle : public ParticleBase<Tdim> {
   Eigen::Matrix<double, 1, Tnphases> mass_;
   //! Phae volume
   Eigen::Matrix<double, 1, Tnphases> phase_volume_;
-  //! Phase volume fraction 
+  //! Phase volume fraction
   Eigen::Matrix<double, 1, Tnphases> volume_fraction_;
   //! Size of particle
   Eigen::Matrix<double, 1, Tdim> size_;

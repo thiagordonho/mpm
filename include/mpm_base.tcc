@@ -241,7 +241,7 @@ bool mpm::MPMBase<Tdim>::initialise_particles() {
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
 #endif
 
-        // Check for duplicates
+    // Check for duplicates
     bool check_duplicates = true;
     try {
       check_duplicates = analysis_["check_duplicates"].template get<bool>();
@@ -304,13 +304,12 @@ bool mpm::MPMBase<Tdim>::initialise_particles() {
           unsigned domain_id = pgroup["generator_properties"]["domain_id"]
                                    .template get<unsigned>();
           // Number of points per each initial sub-integration cell
-          unsigned npoints =
-              pgroup["generator_properties"]["points_per_cell"]
-                  .template get<unsigned>();
+          unsigned npoints = pgroup["generator_properties"]["points_per_cell"]
+                                 .template get<unsigned>();
           // Zero level set ids which define the integration domain
           std::vector<unsigned> ls_ids =
               pgroup["generator_properties"]["level_sets"];
-          
+
           // if (npoints > 0 && ls_ids.size() > 0)
           //   particles_group.emplace_back(
           //       mesh_->generate_ls_material_points(npoints, ls_ids));
@@ -318,12 +317,11 @@ bool mpm::MPMBase<Tdim>::initialise_particles() {
           //   throw std::runtime_error(
           //       "Specified number of points per cell or level set ids are "
           //       "invalid");
-        }
-        else
+        } else
           throw std::runtime_error(
               "Particle generator type is not properly specified");
 
-            // Particles group id
+        // Particles group id
         const unsigned group_id = pgroup["group_id"].template get<unsigned>();
 
         // Particle type
@@ -366,7 +364,7 @@ bool mpm::MPMBase<Tdim>::initialise_particles() {
         bool particle_group_status =
             mesh_->add_particles_group(group_id, particles_ids);
 
-        if(!particle_group_status)
+        if (!particle_group_status)
           throw std::runtime_error(
               "Addition of particles group to mesh failed");
 

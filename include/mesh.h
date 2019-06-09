@@ -25,12 +25,12 @@
 #include "factory.h"
 #include "geometry.h"
 #include "hdf5.h"
+#include "levelset.h"
 #include "logger.h"
 #include "material/material.h"
 #include "node.h"
 #include "particle.h"
 #include "particle_base.h"
-#include "levelset.h"
 
 namespace mpm {
 
@@ -324,7 +324,7 @@ class Mesh {
   //! \param[in] particle_ids Particle ids in the given group
   //! \retval status Status of  create particle groups
   bool add_particles_group(const unsigned group,
-                            std::vector<mpm::Index>& particle_ids);
+                           std::vector<mpm::Index>& particle_ids);
 
   //! Return the number of level sets defined
   //! \retval number of level sets

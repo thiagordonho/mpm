@@ -4,10 +4,10 @@ inline Eigen::VectorXd mpm::Polynomial::evaluate_monomials(
   // number of terms in an univariate polynomial of order Tporder
   const unsigned unipoly_size = porder + 1;
   const unsigned nterms = pow((unipoly_size), Tdim);
-  
+
   // multivariate polynomial is first written using univariate polynomials
   // Ex: 2nd order 2-dimensional multivariate polynomial
-  // | 1   1   | 
+  // | 1   1   |
   // | x   y   |
   // | x^2 y^2 |
   Eigen::MatrixXd multi_polynomial(unipoly_size, Tdim);
@@ -45,4 +45,3 @@ inline Eigen::VectorXd mpm::Polynomial::evaluate_monomials(
   }
   return monomials;
 }
-

@@ -30,7 +30,7 @@ template <unsigned Tdim>
 inline Eigen::VectorXd evaluate_monomials(const unsigned porder,
                                           Eigen::Matrix<double, Tdim, 1> xi);
 
-} // namespace Polynomial
-} // namespace mpm
+}  // namespace Polynomial
+}  // namespace mpm
 
-#endif 
+#endif

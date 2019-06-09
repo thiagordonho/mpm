@@ -11,10 +11,10 @@
 
 #include "element.h"
 #include "hexahedron_element.h"
+#include "material/material.h"
 #include "mesh.h"
 #include "node.h"
 #include "quadrilateral_element.h"
-#include "material/material.h"
 
 //! \brief Check mesh class for 2D case
 TEST_CASE("Mesh is checked for 2D case", "[mesh][2D]") {
@@ -1577,7 +1577,7 @@ TEST_CASE("Mesh is checked for 3D case", "[mesh][3D]") {
             // Global particle index
             std::vector<mpm::Index> gpid(coordinates.size());
             std::iota(gpid.begin(), gpid.end(), 0);
-                        // Initialise material
+            // Initialise material
             Json jmaterial;
             jmaterial["density"] = 1000.;
             jmaterial["youngs_modulus"] = 1.0E+7;

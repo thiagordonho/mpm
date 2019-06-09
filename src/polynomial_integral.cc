@@ -6,7 +6,7 @@
 //! Integration of monomials over [-1,-1] x [1,1] unit square
 template <>
 const Eigen::Matrix<double, 4, 1>
-mpm::Polynomial::IntegralBase<2, 1, 4>::Square_Definite_Integrals =
+    mpm::Polynomial::IntegralBase<2, 1, 4>::Square_Definite_Integrals =
         (Eigen::MatrixXd(4, 1) << 4.0, 0., 0., 0.).finished();
 
 //! 2D Quadrilateral
@@ -15,7 +15,7 @@ mpm::Polynomial::IntegralBase<2, 1, 4>::Square_Definite_Integrals =
 //! Integration of monomials over [-1,-1] x [1,1] unit square
 template <>
 const Eigen::Matrix<double, 9, 1>
-mpm::Polynomial::IntegralBase<2, 2, 9>::Square_Definite_Integrals =
+    mpm::Polynomial::IntegralBase<2, 2, 9>::Square_Definite_Integrals =
         (Eigen::MatrixXd(9, 1) << 4.0, 0., 4. / 3, 0., 0., 0., 4. / 3, 0.,
          4. / 9)
             .finished();

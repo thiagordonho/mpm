@@ -26,8 +26,7 @@ mpm::LevelSet<Tdim>::LevelSet(unsigned id, const std::string& domain,
 
 //! Evaluate signed distance function of a given point
 template <unsigned Tdim>
-double mpm::LevelSet<Tdim>::sign_distance(
-    const VectorDim& point) const {
+double mpm::LevelSet<Tdim>::sign_distance(const VectorDim& point) const {
   // number of monomials
   const unsigned nterms = pow((poly_order_ + 1), Tdim);
   Eigen::VectorXd monomials =
