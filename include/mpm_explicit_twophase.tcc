@@ -25,6 +25,7 @@ bool mpm::MPMExplicitTwoPhase<Tdim>::solve() {
 #endif
 
   // Phase
+  const unsigned phase = 0;
   const unsigned solid_skeleton = 0;
   const unsigned pore_fluid = 1;
 
@@ -48,34 +49,6 @@ bool mpm::MPMExplicitTwoPhase<Tdim>::solve() {
   // Initialise particles
   bool particle_status = this->initialise_particles();
   if (!particle_status) status = false;
-
-  // Assign material to particles
-  // Get particle properties
-  auto particle_props = io_->json_object("particle");
-  
-  // Change this to read an array of material ids
-  const auto material_id =
-      particle_props["material_id"].template get<unsigned>();
-
-  // Get material from list of materials
-  auto solid_skeleton_material = materials_.at(material_id);
-  auto pore_fluid_material = materials_.at(material_id);
-
-  // Iterate over each particle to assign material
-  mesh_->iterate_over_particles(std::bind(
-      &mpm::ParticleBase<Tdim>::assign_material, std::placeholders::_1,
-      solid_skeleton, solid_skeleton_material));
-  mesh_->iterate_over_particles(std::bind(
-      &mpm::ParticleBase<Tdim>::assign_material, std::placeholders::_1,
-      pore_fluid, pore_fluid_material));
-
-  // Read the porosity and assign to particles (set the volume fraction too).
-
-  // Assign material to particle sets
-  if (particle_props["particle_sets"].size() != 0) {
-    // Assign material to particles in the specific sets
-    bool set_material_status = this->apply_properties_to_particles_sets();
-  }
 
   // Compute mass
   // TODO remove phase
