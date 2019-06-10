@@ -1,4 +1,5 @@
 #include "catch.hpp"
+#include <iostream>
 
 //! Alias for JSON
 #include "json.hpp"
@@ -9,20 +10,24 @@ using Json = nlohmann::json;
 
 // Check MPM Explicit USL
 TEST_CASE("MPM 2D Explicit USL implementation is checked in unitcells",
-          "[MPM][2D][Explicit][1Phase][unitcell]") {
+          "[MPM][2D][Explicit][USL][1Phase][unitcell]") {
   // Dimension
   const unsigned Dim = 2;
+  std::cout << __FILE__ << "\t" << __LINE__ << "\n";
 
   // Write JSON file
   const std::string fname = "mpm-explicit-usl";
   const std::string analysis = "MPMExplicitUSL2D";
   REQUIRE(mpm_test::write_json_unitcell(2, analysis, fname) == true);
+  std::cout << __FILE__ << "\t" << __LINE__ << "\n";
 
   // Write Mesh
   REQUIRE(mpm_test::write_mesh_2d_unitcell() == true);
+  std::cout << __FILE__ << "\t" << __LINE__ << "\n";
 
   // Write Particles
   REQUIRE(mpm_test::write_particles_2d_unitcell() == true);
+  std::cout << __FILE__ << "\t" << __LINE__ << "\n";
 
   // Assign argc and argv to input arguments of MPM
   int argc = 5;
@@ -31,15 +36,19 @@ TEST_CASE("MPM 2D Explicit USL implementation is checked in unitcells",
                   (char*)"-f",  (char*)"./",
                   (char*)"-i",  (char*)"mpm-explicit-usl-2d-unitcell.json"};
   // clang-format on
+  std::cout << __FILE__ << "\t" << __LINE__ << "\n";
 
   SECTION("Check initialisation") {
+    std::cout << __FILE__ << "\t" << __LINE__ << "\n";
     // Create an IO object
-    auto io = std::make_unique<mpm::IO>(argc, argv);
+    auto io = std::make_shared<mpm::IO>(argc, argv);
     // Run explicit MPM
-    auto mpm = std::make_unique<mpm::MPMExplicit<Dim>>(std::move(io));
+    auto mpm = std::make_shared<mpm::MPMExplicit<Dim>>(io);
 
+    std::cout << __FILE__ << "\t" << __LINE__ << "\n";
     // Initialise mesh
     REQUIRE(mpm->initialise_mesh() == true);
+    std::cout << __FILE__ << "\t" << __LINE__ << "\n";
     // Initialise materials
     REQUIRE(mpm->initialise_materials() == true);
     // Initialise particles
@@ -55,9 +64,9 @@ TEST_CASE("MPM 2D Explicit USL implementation is checked in unitcells",
 
   SECTION("Check solver") {
     // Create an IO object
-    auto io = std::make_unique<mpm::IO>(argc, argv);
+    auto io = std::make_shared<mpm::IO>(argc, argv);
     // Run explicit MPM
-    auto mpm = std::make_unique<mpm::MPMExplicit<Dim>>(std::move(io));
+    auto mpm = std::make_shared<mpm::MPMExplicit<Dim>>(io);
     // Solve
     REQUIRE(mpm->solve() == true);
   }
@@ -90,9 +99,9 @@ TEST_CASE("MPM 3D Explicit USL implementation is checked in unitcells",
 
   SECTION("Check initialisation") {
     // Create an IO object
-    auto io = std::make_unique<mpm::IO>(argc, argv);
+    auto io = std::make_shared<mpm::IO>(argc, argv);
     // Run explicit MPM
-    auto mpm = std::make_unique<mpm::MPMExplicit<Dim>>(std::move(io));
+    auto mpm = std::make_shared<mpm::MPMExplicit<Dim>>(io);
 
     // Initialise mesh and particles
     REQUIRE(mpm->initialise_mesh() == true);
@@ -111,9 +120,9 @@ TEST_CASE("MPM 3D Explicit USL implementation is checked in unitcells",
 
   SECTION("Check solver") {
     // Create an IO object
-    auto io = std::make_unique<mpm::IO>(argc, argv);
+    auto io = std::make_shared<mpm::IO>(argc, argv);
     // Run explicit MPM
-    auto mpm = std::make_unique<mpm::MPMExplicit<Dim>>(std::move(io));
+    auto mpm = std::make_shared<mpm::MPMExplicit<Dim>>(io);
     // Solve
     REQUIRE(mpm->solve() == true);
   }

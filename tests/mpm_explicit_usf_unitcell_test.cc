@@ -34,9 +34,9 @@ TEST_CASE("MPM 2D Explicit USF implementation is checked in unitcells",
 
   SECTION("Check initialisation") {
     // Create an IO object
-    auto io = std::make_unique<mpm::IO>(argc, argv);
+    auto io = std::make_shared<mpm::IO>(argc, argv);
     // Run explicit MPM
-    auto mpm = std::make_unique<mpm::MPMExplicit<Dim>>(std::move(io));
+    auto mpm = std::make_shared<mpm::MPMExplicit<Dim>>(io);
 
     // Initialise mesh
     REQUIRE(mpm->initialise_mesh() == true);
@@ -55,9 +55,9 @@ TEST_CASE("MPM 2D Explicit USF implementation is checked in unitcells",
 
   SECTION("Check solver") {
     // Create an IO object
-    auto io = std::make_unique<mpm::IO>(argc, argv);
+    auto io = std::make_shared<mpm::IO>(argc, argv);
     // Run explicit MPM
-    auto mpm = std::make_unique<mpm::MPMExplicit<Dim>>(std::move(io));
+    auto mpm = std::make_shared<mpm::MPMExplicit<Dim>>(io);
     // Solve
     REQUIRE(mpm->solve() == true);
   }
@@ -90,9 +90,9 @@ TEST_CASE("MPM 3D Explicit USF implementation is checked in unitcells",
 
   SECTION("Check initialisation") {
     // Create an IO object
-    auto io = std::make_unique<mpm::IO>(argc, argv);
+    auto io = std::make_shared<mpm::IO>(argc, argv);
     // Run explicit MPM
-    auto mpm = std::make_unique<mpm::MPMExplicit<Dim>>(std::move(io));
+    auto mpm = std::make_shared<mpm::MPMExplicit<Dim>>(io);
 
     // Initialise mesh and particles
     REQUIRE(mpm->initialise_mesh() == true);
@@ -111,9 +111,9 @@ TEST_CASE("MPM 3D Explicit USF implementation is checked in unitcells",
 
   SECTION("Check solver") {
     // Create an IO object
-    auto io = std::make_unique<mpm::IO>(argc, argv);
+    auto io = std::make_shared<mpm::IO>(argc, argv);
     // Run explicit MPM
-    auto mpm = std::make_unique<mpm::MPMExplicit<Dim>>(std::move(io));
+    auto mpm = std::make_shared<mpm::MPMExplicit<Dim>>(io);
     // Solve
     REQUIRE(mpm->solve() == true);
   }

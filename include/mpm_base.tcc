@@ -1,7 +1,6 @@
 //! Constructor
 template <unsigned Tdim>
-mpm::MPMBase<Tdim>::MPMBase(std::unique_ptr<IO>&& io)
-    : mpm::MPM(std::move(io)) {
+mpm::MPMBase<Tdim>::MPMBase(std::shared_ptr<IO>& io) : mpm::MPM(io) {
   //! Logger
   console_ = spdlog::get("MPMBase");
 
@@ -14,7 +13,7 @@ mpm::MPMBase<Tdim>::MPMBase(std::unique_ptr<IO>&& io)
   // Set mesh as isoparametric
   bool isoparametric = is_isoparametric();
 
-  mesh_ = std::make_shared<mpm::Mesh<Tdim>>(id, isoparametric);
+  mesh_ = std::make_unique<mpm::Mesh<Tdim>>(id, isoparametric);
 
   // Empty all materials
   materials_.clear();
@@ -240,6 +239,7 @@ bool mpm::MPMBase<Tdim>::initialise_particles() {
     // Get number of MPI ranks
     MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
 #endif
+    console_->error("{} {}", __FILE__, __LINE__);
 
     // Check for duplicates
     bool check_duplicates = true;
@@ -251,12 +251,15 @@ bool mpm::MPMBase<Tdim>::initialise_particles() {
           __FILE__, __LINE__, exception.what());
       check_duplicates = true;
     }
+    console_->error("{} {}", __FILE__, __LINE__);
+
     // Get particle reader from JSON object
     const std::string reader =
         analysis_["file_reader"].template get<std::string>();
     // Create a particle reader
     auto particle_reader =
         Factory<mpm::ReadMesh<Tdim>>::instance()->create(reader);
+    console_->error("{} {}", __FILE__, __LINE__);
 
     // Get particle properties
     auto particle_props = io_->json_object("particles");
@@ -265,6 +268,7 @@ bool mpm::MPMBase<Tdim>::initialise_particles() {
 
     auto particles_begin = std::chrono::steady_clock::now();
 
+    console_->error("{} {}", __FILE__, __LINE__);
     // Total number of particles
     mpm::Index num_particles = 0;
     try {
@@ -275,14 +279,17 @@ bool mpm::MPMBase<Tdim>::initialise_particles() {
         const unsigned group_id = pgroup["group_id"].template get<unsigned>();
         // Particle generator
         const auto generator = pgroup["generator"].template get<std::string>();
+        console_->error("{} {}", __FILE__, __LINE__);
 
         // Generate particles from file
         if (generator == "file") {
+          console_->error("{} {}", __FILE__, __LINE__);
           // Read particles from file : this needs modification in IO class
           const auto pfile = pgroup["generator_properties"]["location"]
                                  .template get<std::string>();
           particles_group =
               particle_reader->read_particles(io_->file_name(pfile));
+          console_->error("{} {}", __FILE__, __LINE__);
         }
         // Generate material points in all cells
         else if (generator == "regular_generator") {  // is the name good?
@@ -306,13 +313,12 @@ bool mpm::MPMBase<Tdim>::initialise_particles() {
           unsigned domain_id = pgroup["generator_properties"]["domain_id"]
                                    .template get<unsigned>();
           // Number of points per each initial sub-integration cell
-          unsigned npoints =
-              pgroup["generator_properties"]["points_per_cell"]
-                  .template get<unsigned>();
+          unsigned npoints = pgroup["generator_properties"]["points_per_cell"]
+                                 .template get<unsigned>();
           // Zero level set ids which define the integration domain
           std::vector<unsigned> ls_ids =
               pgroup["generator_properties"]["level_sets"];
-          
+
           // if (npoints > 0 && ls_ids.size() > 0)
           //   particles_group.emplace_back(
           //       mesh_->generate_ls_material_points(npoints, ls_ids));
@@ -320,14 +326,15 @@ bool mpm::MPMBase<Tdim>::initialise_particles() {
           //   throw std::runtime_error(
           //       "Specified number of points per cell or level set ids are "
           //       "invalid");
-        }
-        else
+        } else
           throw std::runtime_error(
               "Particle generator type is not properly specified");
 
+        console_->error("{} {}", __FILE__, __LINE__);
         // Particle type
         const auto particle_type =
             pgroup["particle_type"].template get<std::string>();
+        console_->error("{} {}", __FILE__, __LINE__);
 
         // Material id
         std::vector<unsigned> material_id = pgroup["material_id"];
@@ -336,6 +343,7 @@ bool mpm::MPMBase<Tdim>::initialise_particles() {
                       [&](const unsigned& mat_id) {
                         materials.emplace_back(materials_.at(mat_id));
                       });
+        console_->error("{} {}", __FILE__, __LINE__);
 
         // Get all particle ids
         std::vector<mpm::Index> particles_group_ids(particles_group.size());
@@ -349,6 +357,7 @@ bool mpm::MPMBase<Tdim>::initialise_particles() {
         // Get local particles ids chunks
         std::vector<mpm::Index> particles_ids;
         chunk_scalar_quantities(particles_group_ids, particles_ids);
+        console_->error("{} {}", __FILE__, __LINE__);
 
         // Create particles
         bool particle_status =
@@ -358,12 +367,15 @@ bool mpm::MPMBase<Tdim>::initialise_particles() {
                                     particles,          // coordinates
                                     check_duplicates);  // Check duplicates
 
+        console_->error("{} {}", __FILE__, __LINE__);
         if (!particle_status)
           throw std::runtime_error("Addition of particles to mesh failed");
+        console_->error("{} {}", __FILE__, __LINE__);
 
         // Add to particle groups
         bool particle_group_status =
             mesh_->add_particles_group(group_id, particles_ids);
+        console_->error("{} {}", __FILE__, __LINE__);
 
         if (!particle_group_status)
           throw std::runtime_error(
@@ -374,7 +386,7 @@ bool mpm::MPMBase<Tdim>::initialise_particles() {
       }
 
     } catch (std::exception& exception) {
-      console_->error("Generating particle failed: {}", exception.what());
+      console_->warn("Generating particle failed");
       status = false;
     }
 

@@ -50,7 +50,7 @@ template <unsigned Tdim>
 class MPMBase : public MPM {
  public:
   //! Default constructor
-  MPMBase(std::unique_ptr<IO>&& io);
+  MPMBase(std::shared_ptr<IO>& io);
 
   //! Initialise mesh
   bool initialise_mesh() override;
