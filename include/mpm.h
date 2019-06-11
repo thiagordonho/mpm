@@ -26,8 +26,7 @@ namespace mpm {
 class MPM {
  public:
   //! Constructor
-  MPM(std::shared_ptr<IO>& io) : io_(io) {
-
+  MPM(std::shared_ptr<IO>& io) : io_{io} {
     analysis_ = io_->analysis();
 
     // Unique id

@@ -9,7 +9,7 @@ using Json = nlohmann::json;
 
 // Check MPM Explicit USF
 TEST_CASE("MPM 2D Explicit USF implementation is checked in unitcells",
-          "[MPM][2D][Explicit][1Phase][unitcell]") {
+          "[MPM][2D][Explicit][USF][1Phase][unitcell]") {
   // Dimension
   const unsigned Dim = 2;
 
