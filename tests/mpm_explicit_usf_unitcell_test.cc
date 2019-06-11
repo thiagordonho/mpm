@@ -94,12 +94,12 @@ TEST_CASE("MPM 3D Explicit USF implementation is checked in unitcells",
     // Run explicit MPM
     auto mpm = std::make_shared<mpm::MPMExplicit<Dim>>(io);
 
-    // Initialise mesh and particles
+    // Initialise mesh
     REQUIRE(mpm->initialise_mesh() == true);
-    REQUIRE(mpm->initialise_particles() == true);
-
     // Initialise materials
     REQUIRE(mpm->initialise_materials() == true);
+    // Initialise particles
+    REQUIRE(mpm->initialise_particles() == true);
 
     // Reinitialise mesh
     REQUIRE(mpm->initialise_mesh() == false);
