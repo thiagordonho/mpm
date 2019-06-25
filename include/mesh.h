@@ -7,6 +7,7 @@
 #include <memory>
 #include <numeric>
 #include <vector>
+#include <tuple>
 
 // Eigen
 #include "Eigen/Dense"
@@ -325,6 +326,15 @@ class Mesh {
   //! \retval status Status of  create particle groups
   bool add_particles_group(const unsigned group,
                             std::vector<mpm::Index>& particle_ids);
+
+  //! Create a map of level set functions
+  //! \param[in] levelset functions
+  //! levelset function id, levelset integration domain, moving status
+  //! levelset polynomial order and coefficients
+  //! \retval status Return the successful creation of levelsets
+  bool create_level_sets(
+      unsigned id,
+      std::tuple<std::string, bool, unsigned, std::vector<double>> ls_propst);
 
   //! Return the number of level sets defined
   //! \retval number of level sets

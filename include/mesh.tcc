@@ -1175,3 +1175,34 @@ bool mpm::Mesh<Tdim>::create_particle_sets(
   }
   return status;
 }
+
+//! Create the level sets container
+template <unsigned Tdim>
+bool mpm::Mesh<Tdim>::create_level_sets(
+    unsigned id,
+    std::tuple<std::string, bool, unsigned, std::vector<double>> ls_props) {
+  bool status = true;
+  try {
+    // level set id and function polynomial order
+    unsigned porder;
+    // integration domain (In, Out or Boundary)
+    std::string domain;
+    // level set function polynomial coefficients
+    std::vector<double> pcoefficients;
+    // moving status
+    bool moving_status;
+    std::tie(domain, moving_status, porder, pcoefficients) = ls_props;
+
+    status = level_sets_
+                 .insert({id, std::make_shared<mpm::LevelSet<Tdim>>(
+                                  id, domain, moving_status)})
+                 .second;
+    if (status)
+      level_sets_.at(id)->assign_polynomial_function(porder, pcoefficients);
+    else
+      throw std::runtime_error("Level set creation failed");
+  } catch (std::exception& exception) {
+    console_->error("{} #{}: {}\n", __FILE__, __LINE__, exception.what());
+  }
+  return status;
+}
