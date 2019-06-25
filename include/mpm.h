@@ -48,6 +48,9 @@ class MPM {
   // Initialise materials
   virtual bool initialise_materials() = 0;
 
+  // Initialaise implicit boundary
+  virtual bool initialise_levelsets() = 0;
+
   //! Apply nodal tractions
   virtual bool apply_nodal_tractions() = 0;
 

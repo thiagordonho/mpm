@@ -69,6 +69,18 @@ mpm::MPMBase<Tdim>::MPMBase(std::unique_ptr<IO>&& io)
       velocity_update_ = false;
     }
 
+    // Level set methods
+    try {
+      ls_methods_ = analysis_["ls_methods"].template get<bool>();
+      if (ls_methods_) this->initialise_levelsets();
+    } catch (std::exception& exception) {
+      console_->warn(
+          "{} #{}: No level set methods are defined, set to default "
+          "none",
+          __FILE__, __LINE__, exception.what());
+      ls_methods_ = false;
+    }
+
     post_process_ = io_->post_processing();
     // Output steps
     output_steps_ = post_process_["output_steps"].template get<mpm::Index>();
@@ -702,4 +714,43 @@ bool mpm::MPMBase<Tdim>::is_isoparametric() {
     isoparametric = true;
   }
   return isoparametric;
+}
+
+//! Initialise level set functions
+template <unsigned Tdim>
+bool mpm::MPMBase<Tdim>::initialise_levelsets() {
+  bool status = true;
+  try {
+    // Get zero level set properties
+    auto level_sets = io_->json_object("level_sets");
+    if (level_sets.size() > 0) {
+      for (const auto ls_props : level_sets) {
+        // level set id
+        unsigned ls_id = ls_props["id"].template get<unsigned>();
+        // function polynomial order
+        unsigned ls_porder = ls_props["porder"].template get<unsigned>();
+        // function polynomial coefficiens
+        std::vector<double> ls_coefficients = ls_props.at("pcoefficients");
+        if (!(ls_coefficients.size() == pow((ls_porder + 1), Tdim)))
+          throw std::runtime_error(
+              "Number of polynomial coefficients does not match with specified "
+              "polynomial order");
+        // integration domain
+        std::string ls_domain =
+            ls_props["integration"].template get<std::string>();
+        // level set moving status (fixed or moving)
+        bool moving_status = ls_props["moving"].template get<bool>();
+        // add level set to mesh
+        status = mesh_->create_level_sets(
+            ls_id, std::make_tuple(ls_domain, moving_status, ls_porder,
+                                   ls_coefficients));
+
+        if (!status) throw std::runtime_error("Creating level sets failed");
+      }
+    } else
+      throw std::runtime_error("No level set functions are defined");
+  } catch (std::exception& exception) {
+    console_->error("{} #{}: {}\n", __FILE__, __LINE__, exception.what());
+  }
+  return status;
 }

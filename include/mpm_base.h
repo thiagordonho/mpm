@@ -46,6 +46,9 @@ class MPMBase : public MPM {
   //! Initialise materials
   bool initialise_materials() override;
 
+  //! Initialise zero level sets
+  bool initialise_levelsets() override;
+
   //! Apply nodal tractions
   bool apply_nodal_tractions() override;
 
