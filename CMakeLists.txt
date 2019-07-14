@@ -16,7 +16,7 @@ ENDIF (NOT CMAKE_BUILD_TYPE)
 
 # GNU specific settings
 if (CMAKE_CXX_COMPILER_ID MATCHES "GNU")
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}")
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fpermissive")
 endif()
 
 # Intel specific settings
@@ -124,7 +124,7 @@ if(MPM_BUILD_TESTING)
   SET(test_src
     ${mpm_SOURCE_DIR}/tests/test_main.cc
     ${mpm_SOURCE_DIR}/tests/mesh_test.cc
-  )   
+  )
   add_executable(mpmtest ${test_src})
   target_link_libraries(mpmtest lmpm)
   add_test(NAME mpmtest COMMAND $<TARGET_FILE:mpmtest>)
