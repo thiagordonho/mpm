@@ -7,6 +7,8 @@
 [![CircleCI](https://circleci.com/gh/cb-geo/mpm.svg?style=svg)](https://circleci.com/gh/cb-geo/mpm)
 [![codecov](https://codecov.io/gh/cb-geo/mpm/branch/develop/graph/badge.svg)](https://codecov.io/gh/cb-geo/mpm)
 [![](https://img.shields.io/github/issues-raw/cb-geo/mpm.svg)](https://github.com/cb-geo/mpm/issues)
+[![Coverity](https://scan.coverity.com/projects/14389/badge.svg)](https://scan.coverity.com/projects/14389/badge.svg)
+[![Language grade: C/C++](https://img.shields.io/lgtm/grade/cpp/g/cb-geo/mpm.svg?logo=lgtm&logoWidth=18)](https://lgtm.com/projects/g/cb-geo/mpm/context:cpp)
 [![Project management](https://img.shields.io/badge/projects-view-ff69b4.svg)](https://github.com/cb-geo/mpm/projects/)
 
 ## Documentation
@@ -29,6 +31,8 @@ Please refer to [CB-Geo MPM Documentation](https://cb-geo.github.io/mpm-doc) for
 
 #### Optional
 * [MPI](https://www.open-mpi.org/)
+* [METIS](http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/)
+* [ParMETIS](http://glaros.dtc.umn.edu/gkhome/fetch/sw/parmetis/)
 * [VTK](https://www.vtk.org/)
 
 ### Fedora installation
@@ -75,6 +79,26 @@ make -j
 sudo make install
 ```
 
+### METIS/ParMETIS installation
+
+```shell
+# METIS and PARMETIS
+
+wget http://glaros.dtc.umn.edu/gkhome/fetch/sw/metis/metis-5.1.0.tar.gz && \
+    tar -xf metis-5.1.0.tar.gz && \
+    cd metis-5.1.0/ && mkdir -p ~/workspace/metis && \
+    make config shared=1 cc=mpicc cxx=mpic++ prefix=~/workspace/metis && \
+    make install 
+
+wget http://glaros.dtc.umn.edu/gkhome/fetch/sw/parmetis/parmetis-4.0.3.tar.gz && \
+    tar -xf parmetis-4.0.3.tar.gz && \
+    cd parmetis-4.0.3/ && mkdir -p ~/workspace/parmetis && \
+    make config shared=1 cc=mpicc cxx=mpic++ prefix=~/workspace/parmetis && \
+    make install
+```
+
+
+
 ## Compile
 > See https://mpm-doc.cb-geo.com/ for more detailed instructions. 
 
@@ -88,7 +112,7 @@ sudo make install
 
 ### Compile without tests [Editing CMake options]
 
-To compile without tests run: `mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DMPM_BUILD_TESTING=Off ..`.
+To compile without tests run: `mkdir build && cd build && cmake -DCMAKE_BUILD_TYPE=Release -DMPM_BUILD_TESTING=Off  -DCMAKE_CXX_COMPILER=g++ -DMETIS_DIR=~/workspace/metis/ -DPARMETIS_DIR=~/workspace/parmetis/ ..`.
 
 ### Run tests
 
@@ -150,7 +174,7 @@ Compile with OpenMPI:
 ```
 mkdir build && cd build 
 export CXX_COMPILER=mpicxx
-cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=mpicxx -DCMAKE_EXPORT_COMPILE_COMMANDS=On ..
+cmake -DCMAKE_BUILD_TYPE=Release -DCMAKE_CXX_COMPILER=g++ -DMETIS_DIR=~/workspace/metis/ -DPARMETIS_DIR=~/workspace/parmetis/ ..
 make -jN
 ```
 
