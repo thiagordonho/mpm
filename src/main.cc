@@ -5,7 +5,6 @@
 #include "mpi.h"
 #endif
 #include "spdlog/spdlog.h"
-#include "tbb/task_scheduler_init.h"
 
 #include "io.h"
 #include "mpm.h"
@@ -20,6 +19,13 @@ int main(int argc, char** argv) {
   // Get number of MPI ranks
   int mpi_size;
   MPI_Comm_size(MPI_COMM_WORLD, &mpi_size);
+
+  // Allocate enough space to issue the buffered send
+  int mpi_buffer_size = 2000000000;
+  void* mpi_buffer = malloc(mpi_buffer_size);
+  // Pass the buffer allocated to MPI so it uses it when we issue MPI_Bsend
+  MPI_Buffer_attach(mpi_buffer, mpi_buffer_size);
+
 #endif
 
   try {
@@ -30,20 +36,20 @@ int main(int argc, char** argv) {
     auto console = spdlog::stdout_color_mt("main");
 
     // Create an IO object
-    auto io = std::make_unique<mpm::IO>(argc, argv);
+    auto io = std::make_shared<mpm::IO>(argc, argv);
 
-    // Set TBB threads
-    unsigned nthreads = tbb::task_scheduler_init::default_num_threads();
-    // If number of TBB threads are positive set to nthreads
-    if (io->nthreads() > 0) nthreads = io->nthreads();
-    tbb::task_scheduler_init init(nthreads);
+    // If number of threads are positive set to nthreads
+    unsigned nthreads = io->nthreads();
+#ifdef _OPENMP
+    omp_set_num_threads(nthreads > 0 ? nthreads : omp_get_max_threads());
+#endif
 
     // Get analysis type
     const std::string analysis = io->analysis_type();
 
     // Create an MPM analysis
     auto mpm =
-        Factory<mpm::MPM, std::unique_ptr<mpm::IO>&&>::instance()->create(
+        Factory<mpm::MPM, const std::shared_ptr<mpm::IO>&>::instance()->create(
             analysis, std::move(io));
     // Solve
     mpm->solve();
@@ -51,11 +57,16 @@ int main(int argc, char** argv) {
   } catch (std::exception& exception) {
     std::cerr << "MPM main: " << exception.what() << std::endl;
 #ifdef USE_MPI
+    free(mpi_buffer);
+    MPI_Buffer_detach(&mpi_buffer, &mpi_buffer_size);
     MPI_Abort(MPI_COMM_WORLD, 1);
 #endif
+    std::terminate();
   }
 
 #ifdef USE_MPI
+  free(mpi_buffer);
+  MPI_Buffer_detach(&mpi_buffer, &mpi_buffer_size);
   MPI_Finalize();
 #endif
 }

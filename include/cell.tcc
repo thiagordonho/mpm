@@ -45,9 +45,9 @@ bool mpm::Cell<Tdim>::initialise() {
       Eigen::Matrix<double, Tdim, 1> zero;
       zero.setZero();
 
-      // Get B-Matrix at the centroid
-      bmatrix_centroid_ =
-          element_->bmatrix(xi_centroid, this->nodal_coordinates_, zero, zero);
+      // dN/dX at the centroid
+      dn_dx_centroid_ =
+          element_->dn_dx(xi_centroid, this->nodal_coordinates_, zero, zero);
 
       status = true;
     } else {
@@ -336,15 +336,28 @@ inline bool mpm::Cell<Tdim>::is_point_in_cell(
 
   // Check if the transformed coordinate is within the unit cell:
   // between 0 and 1-xi(1-i) if the element is a triangle, and between
-  // -1 and 1 if otherwise
+  // -1 and 1 if otherwise. Also, check if the transformed coordinate lies
+  // exactly on cell edge.
+  const double tolerance = std::numeric_limits<double>::epsilon();
   if (this->element_->corner_indices().size() == 3) {
-    for (unsigned i = 0; i < (*xi).size(); ++i)
+    for (unsigned i = 0; i < (*xi).size(); ++i) {
       if ((*xi)(i) < 0. || (*xi)(i) > 1. - (*xi)(1 - i) || std::isnan((*xi)(i)))
         status = false;
+      else {
+        if ((*xi)(i) < tolerance) (*xi)(i) = tolerance;
+        if ((*xi)(i) > 1. - (*xi)(1 - i) - tolerance)
+          (*xi)(i) = 1. - (*xi)(1 - i) - tolerance;
+      }
+    }
   } else {
-    for (unsigned i = 0; i < (*xi).size(); ++i)
+    for (unsigned i = 0; i < (*xi).size(); ++i) {
       if ((*xi)(i) < -1. || (*xi)(i) > 1. || std::isnan((*xi)(i)))
         status = false;
+      else {
+        if ((*xi)(i) < -1. + tolerance) (*xi)(i) = -1. + tolerance;
+        if ((*xi)(i) > 1. - tolerance) (*xi)(i) = 1. - tolerance;
+      }
+    }
   }
   return status;
 }
@@ -647,11 +660,12 @@ inline Eigen::Matrix<double, Tdim, 1>
   // Trial guess for NR
   Eigen::Matrix<double, Tdim, 1> nr_xi = geometry_xi;
   // Check if the first trial xi is just outside the box
+  const double nudge_tolerance = 1.E-12;
   for (unsigned i = 0; i < nr_xi.size(); ++i) {
     if (nr_xi(i) < -1. && nr_xi(i) > -1.001)
-      nr_xi(i) = -0.999999999999;
+      nr_xi(i) = -1. + nudge_tolerance;
     else if (nr_xi(i) > 1. && nr_xi(i) < 1.001)
-      nr_xi(i) = 0.999999999999;
+      nr_xi(i) = 1. - nudge_tolerance;
   }
 
   // Maximum iterations of newton raphson
@@ -727,204 +741,10 @@ inline Eigen::Matrix<double, Tdim, 1>
   return xi;
 }
 
-//! Map particle mass to nodes
+//! Assign MPI rank to nodes
 template <unsigned Tdim>
-void mpm::Cell<Tdim>::map_particle_mass_to_nodes(const Eigen::VectorXd& shapefn,
-                                                 unsigned phase, double pmass) {
-  for (unsigned i = 0; i < shapefn.size(); ++i) {
-    nodes_[i]->update_mass(true, phase, shapefn(i) * pmass);
-  }
-}
-
-//! Map particle volume to nodes
-template <unsigned Tdim>
-void mpm::Cell<Tdim>::map_particle_volume_to_nodes(
-    const Eigen::VectorXd& shapefn, unsigned phase, double pvolume) {
-
-  for (unsigned i = 0; i < shapefn.size(); ++i) {
-    nodes_[i]->update_volume(true, phase, shapefn(i) * pvolume);
-  }
-}
-
-//! Map particle mass and momentum to nodes for a given phase
-template <unsigned Tdim>
-void mpm::Cell<Tdim>::map_mass_momentum_to_nodes(
-    const Eigen::VectorXd& shapefn, unsigned phase, double pmass,
-    const Eigen::VectorXd& pvelocity) {
-  for (unsigned i = 0; i < this->nfunctions(); ++i) {
-    nodes_[i]->update_mass(true, phase, shapefn(i) * pmass);
-    nodes_[i]->update_momentum(true, phase, shapefn(i) * pmass * pvelocity);
-  }
-}
-
-//! Map particle pressure to nodes for a given phase
-template <unsigned Tdim>
-void mpm::Cell<Tdim>::map_pressure_to_nodes(const Eigen::VectorXd& shapefn,
-                                            unsigned phase, double pmass,
-                                            double ppressure) {
-
-  for (unsigned i = 0; i < this->nfunctions(); ++i)
-    nodes_[i]->update_mass_pressure(phase, shapefn(i) * pmass * ppressure);
-}
-
-//! Compute nodal momentum from particle mass and velocity for a given phase
-template <unsigned Tdim>
-void mpm::Cell<Tdim>::compute_nodal_momentum(const Eigen::VectorXd& shapefn,
-                                             unsigned phase, double pmass,
-                                             const Eigen::VectorXd& pvelocity) {
-
-  for (unsigned i = 0; i < this->nfunctions(); ++i)
-    nodes_[i]->update_momentum(true, phase, shapefn(i) * pmass * pvelocity);
-}
-
-//! Compute strain rate
-template <unsigned Tdim>
-Eigen::VectorXd mpm::Cell<Tdim>::compute_strain_rate(
-    const std::vector<Eigen::MatrixXd>& bmatrix, unsigned phase) {
-  // Define strain rate
-  Eigen::Matrix<double, Tdof, 1> strain_rate =
-      Eigen::Matrix<double, Tdof, 1>::Zero(bmatrix.at(0).rows());
-
-  try {
-    // Check if B-Matrix size and number of nodes match
-    if (this->nfunctions() != bmatrix.size() ||
-        this->nnodes() != bmatrix.size())
-      throw std::runtime_error(
-          "Number of nodes / shapefn doesn't match BMatrix");
-
-    for (unsigned i = 0; i < this->nnodes(); ++i)
-      strain_rate += bmatrix.at(i) * nodes_[i]->velocity(phase);
-  } catch (std::exception& exception) {
-    console_->error("{} #{}: {}\n", __FILE__, __LINE__, exception.what());
-  }
-  return strain_rate;
-}
-
-//! Compute strain rate for reduced integration at the centroid of cell
-template <unsigned Tdim>
-Eigen::VectorXd mpm::Cell<Tdim>::compute_strain_rate_centroid(unsigned phase) {
-
-  // Define strain rate at centroid
-  Eigen::Matrix<double, Tdof, 1> strain_rate_centroid =
-      Eigen::Matrix<double, Tdof, 1>::Zero(bmatrix_centroid_.at(0).rows());
-
-  // Compute strain rate
-  for (unsigned i = 0; i < this->nnodes(); ++i)
-    strain_rate_centroid +=
-        bmatrix_centroid_.at(i) * nodes_[i]->velocity(phase);
-  return strain_rate_centroid;
-}
-
-//! Compute the nodal body force of a cell from particle mass and gravity
-template <unsigned Tdim>
-void mpm::Cell<Tdim>::compute_nodal_body_force(const Eigen::VectorXd& shapefn,
-                                               unsigned phase, double pmass,
-                                               const VectorDim& pgravity) {
-  // Map external forces from particle to nodes
-  for (unsigned i = 0; i < this->nfunctions(); ++i)
-    nodes_[i]->update_external_force(true, phase,
-                                     (shapefn(i) * pgravity * pmass));
-}
-
-//! Compute the nodal traction force of a cell from particle
-template <unsigned Tdim>
-void mpm::Cell<Tdim>::compute_nodal_traction_force(
-    const Eigen::VectorXd& shapefn, unsigned phase, const VectorDim& traction) {
-  // Map external forces from particle to nodes
-  for (unsigned i = 0; i < this->nfunctions(); ++i)
-    nodes_[i]->update_external_force(true, phase, (shapefn(i) * traction));
-}
-
-//! Compute the nodal internal force  of a cell from particle stress and
-//! volume
-template <unsigned Tdim>
-inline void mpm::Cell<Tdim>::compute_nodal_internal_force(
-    const std::vector<Eigen::MatrixXd>& bmatrix, unsigned phase, double pvolume,
-    const Eigen::Matrix<double, 6, 1>& pstress) {
-  // Define strain rate
-  Eigen::VectorXd stress;
-
-  switch (Tdim) {
-    case (1): {
-      stress.resize(1);
-      stress.setZero();
-      stress(0) = pstress(0);
-      break;
-    }
-    case (2): {
-      stress.resize(3);
-      stress.setZero();
-      stress(0) = pstress(0);
-      stress(1) = pstress(1);
-      stress(2) = pstress(3);
-      break;
-    }
-    default: {
-      stress.resize(6);
-      stress = pstress;
-      break;
-    }
-  }
-  // Map internal forces from particle to nodes
-  for (unsigned j = 0; j < this->nfunctions(); ++j)
-    nodes_[j]->update_internal_force(
-        true, phase, (pvolume * bmatrix.at(j).transpose() * stress));
-}
-
-//! Return velocity at a given point by interpolating from nodes
-template <unsigned Tdim>
-Eigen::Matrix<double, Tdim, 1> mpm::Cell<Tdim>::interpolate_nodal_velocity(
-    const Eigen::VectorXd& shapefn, unsigned phase) {
-  Eigen::Matrix<double, Tdim, 1> velocity;
-  velocity.setZero();
-
-  for (unsigned i = 0; i < this->nfunctions(); ++i)
-    velocity += shapefn(i) * nodes_[i]->velocity(phase);
-
-  return velocity;
-}
-
-//! Return acceleration at a point by interpolating from nodes
-template <unsigned Tdim>
-Eigen::Matrix<double, Tdim, 1> mpm::Cell<Tdim>::interpolate_nodal_acceleration(
-    const Eigen::VectorXd& shapefn, unsigned phase) {
-  Eigen::Matrix<double, Tdim, 1> acceleration;
-  acceleration.setZero();
-  for (unsigned i = 0; i < this->nfunctions(); ++i)
-    acceleration += shapefn(i) * nodes_[i]->acceleration(phase);
-
-  return acceleration;
-}
-
-//! Return pressure at a point by interpolating from nodes
-template <unsigned Tdim>
-double mpm::Cell<Tdim>::interpolate_nodal_pressure(
-    const Eigen::VectorXd& shapefn, unsigned phase) {
-  double pressure = 0;
-  for (unsigned i = 0; i < this->nfunctions(); ++i)
-    pressure += shapefn(i) * nodes_[i]->pressure(phase);
-
-  return pressure;
-}
-
-//! Assign velocity constraint
-template <unsigned Tdim>
-bool mpm::Cell<Tdim>::assign_velocity_constraint(unsigned face_id, unsigned dir,
-                                                 double velocity) {
-  bool status = true;
-  try {
-    //! Constraint directions can take values between 0 and Dim * Nphases - 1
-    if (face_id < element_->nfaces()) {
-      this->velocity_constraints_[face_id].emplace_back(
-          std::make_pair<unsigned, double>(static_cast<unsigned>(dir),
-                                           static_cast<double>(velocity)));
-    } else
-      throw std::runtime_error("Constraint direction is out of bounds");
-  } catch (std::exception& exception) {
-    console_->error("{} #{}: {}\n", __FILE__, __LINE__, exception.what());
-    status = false;
-  }
-  return status;
+void mpm::Cell<Tdim>::assign_mpi_rank_to_nodes() {
+  for (unsigned i = 0; i < nodes_.size(); ++i) nodes_[i]->mpi_rank(this->rank_);
 }
 
 //! Compute all face normals 2d
@@ -1008,11 +828,20 @@ inline std::vector<std::vector<mpm::Index>>
 //! Assign MPI rank to cell
 template <unsigned Tdim>
 inline void mpm::Cell<Tdim>::rank(unsigned rank) {
-  this->rank_ = rank;
+  if (rank_ != rank) {
+    this->previous_mpirank_ = this->rank_;
+    this->rank_ = rank;
+  }
 }
 
 //! Return MPI rank of the cell
 template <unsigned Tdim>
 inline unsigned mpm::Cell<Tdim>::rank() const {
   return this->rank_;
+}
+
+//! Return MPI rank of the cell
+template <unsigned Tdim>
+inline unsigned mpm::Cell<Tdim>::previous_mpirank() const {
+  return this->previous_mpirank_;
 }

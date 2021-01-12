@@ -6,7 +6,7 @@
 #include "element.h"
 #include "hdf5_particle.h"
 #include "hexahedron_element.h"
-#include "material/material.h"
+#include "material.h"
 #include "mesh.h"
 #include "node.h"
 #include "particle.h"
@@ -162,7 +162,7 @@ TEST_CASE("Particle cell crossing is checked for 2D case",
   // Iterate over each particle to assign material
   mesh->iterate_over_particles(
       std::bind(&mpm::ParticleBase<Dim>::assign_material, std::placeholders::_1,
-                material));
+                material, mpm::ParticlePhase::Solid));
 
   // Compute volume
   mesh->iterate_over_particles(std::bind(
@@ -203,7 +203,7 @@ TEST_CASE("Particle cell crossing is checked for 2D case",
   // Iterate over each particle to compute updated position
   mesh->iterate_over_particles(
       std::bind(&mpm::ParticleBase<Dim>::compute_updated_position,
-                std::placeholders::_1, dt));
+                std::placeholders::_1, dt, false));
 
   // Locate particles in a mesh
   particles = mesh->locate_particles_mesh();
@@ -418,7 +418,7 @@ TEST_CASE("Particle cell crossing is checked for 3D case",
   // Iterate over each particle to assign material
   mesh->iterate_over_particles(
       std::bind(&mpm::ParticleBase<Dim>::assign_material, std::placeholders::_1,
-                material));
+                material, mpm::ParticlePhase::Solid));
 
   // Compute volume
   mesh->iterate_over_particles(std::bind(
@@ -463,7 +463,7 @@ TEST_CASE("Particle cell crossing is checked for 3D case",
   // Iterate over each particle to compute updated position
   mesh->iterate_over_particles(
       std::bind(&mpm::ParticleBase<Dim>::compute_updated_position,
-                std::placeholders::_1, dt));
+                std::placeholders::_1, dt, false));
 
   // Locate particles in a mesh
   particles = mesh->locate_particles_mesh();
